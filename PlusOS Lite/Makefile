@@ -1,34 +1,33 @@
-BUILD_DIR = build
+BUILD = build
 
 ASM = nasm
+CC = gcc
 LD = ld
 
 ASM_FLAGS = -f elf32
-LD_FLAGS = -m elf_i386 -T linker.ld -o
+C_FLAGS = -m32 -ffreestanding -c
+LD_FLAGS = -m elf_i386 -T linker.ld
 
 BOOT = boot/boot.asm
-KERNEL = kernel/kernel.asm
+KERNEL = kernel/kernel.c
 
-BOOT_OBJ = $(BUILD_DIR)/boot.o
-KERNEL_OBJ = $(BUILD_DIR)/kernel.o
-
-IMAGE = $(BUILD_DIR)/os.bin
+BOOT_OBJ = $(BUILD)/boot.o
+KERNEL_OBJ = $(BUILD)/kernel.o
+IMAGE = $(BUILD)/os.bin
 
 all: $(IMAGE)
 
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+$(BUILD):
+	mkdir -p $(BUILD)
 
-$(BOOT_OBJ): $(BOOT) | $(BUILD_DIR)
+$(BOOT_OBJ): $(BOOT) | $(BUILD)
 	$(ASM) $(ASM_FLAGS) $< -o $@
 
-$(KERNEL_OBJ): $(KERNEL) | $(BUILD_DIR)
-	$(ASM) $(ASM_FLAGS) $< -o $@
+$(KERNEL_OBJ): $(KERNEL) | $(BUILD)
+	$(CC) $(C_FLAGS) $< -o $@
 
 $(IMAGE): $(BOOT_OBJ) $(KERNEL_OBJ)
-	$(LD) $(LD_FLAGS) $@ $^
+	$(LD) $(LD_FLAGS) -o $@ $^
 
 clean:
-	rm -rf $(BUILD_DIR)
-
-.PHONY: all clean
+	rm -rf $(BUILD)
