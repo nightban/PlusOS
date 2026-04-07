@@ -1,7 +1,8 @@
-name: Build PlusOS
+name: Build PlusOS Lite
 
 on:
   push:
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
@@ -9,33 +10,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install dependencies
         run: |
-          sudo apt update
-          sudo apt install -y nasm gcc-multilib make binutils
+          sudo apt-get update
+          sudo apt-get install -y nasm gcc make build-essential gcc-multilib
 
-      - name: Debug structure
-        run: ls -R
-
-      # 👉 сборка версии Lite (если папка есть)
-      - name: Build PlusOS Lite
+      - name: Build OS
         run: |
           if [ -d "PlusOS Lite" ]; then
             cd "PlusOS Lite"
-            make
+
+            mkdir -p build
+
+            # сборка asm (если есть)
+            if [ -f boot/boot.asm ]; then
+              nasm -f elf32 boot/boot.asm -o build/boot.o
+            fi
+
+            # сборка C файлов
+            gcc -m32 -ffreestanding -c -Ikernel kernel/kernel.c -o build/kernel.o
+            gcc -m32 -ffreestanding -c -Ikernel kernel/screen.c -o build/screen.o
+            gcc -m32 -ffreestanding -c -Ikernel kernel/keyboard.c -o build/keyboard.o
+
+            # линковка
+            ld -m elf_i386 -T linker.ld -o build/os.bin build/boot.o build/kernel.o build/screen.o build/keyboard.o
           else
-            echo "❌ Folder PlusOS Lite not found"
-            ls -R
+            echo "Folder 'PlusOS Lite' not found!"
             exit 1
           fi
 
-      # 👉 если хочешь, можешь добавить другие версии:
-      # - name: Build PlusOS Pro
-      #   run: |
-      #     if [ -d "PlusOS Pro" ]; then
-      #       cd "PlusOS Pro"
-      #       make
-      #     fi
+      - name: Upload OS
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlusOS
+          path: "PlusOS Lite/build/os.bin"
