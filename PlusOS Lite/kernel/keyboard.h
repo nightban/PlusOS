@@ -1,6 +1,6 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
-char get_key();
+char keyboard_getchar();
 
 #endif
