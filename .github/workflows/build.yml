@@ -15,7 +15,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y nasm gcc-multilib make ld
+          sudo apt install -y nasm gcc-multilib make binutils 
 
       - name: Build OS
         run: make
