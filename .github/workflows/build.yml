@@ -2,26 +2,30 @@ name: Build PlusOS Lite
 
 on:
   push:
-  pull_request:
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y nasm gcc-multilib make binutils 
+          sudo apt install -y nasm gcc-multilib make binutils
+
+      # 👉 если у тебя папка "Lite"
+      - name: Debug files
+        run: ls -R
 
       - name: Build OS
-        run: make
+        run: |
+          # если проект в папке "PlusOS Lite"
+          if [ -d "PlusOS Lite" ]; then
+            cd "PlusOS Lite"
+          fi
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: PlusOS-Lite
-          path: build/
+          make
