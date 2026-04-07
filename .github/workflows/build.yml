@@ -1,4 +1,4 @@
-name: Build PlusOS Lite
+name: Build PlusOS
 
 on:
   push:
@@ -17,15 +17,25 @@ jobs:
           sudo apt update
           sudo apt install -y nasm gcc-multilib make binutils
 
-      # 👉 если у тебя папка "Lite"
-      - name: Debug files
+      - name: Debug structure
         run: ls -R
 
-      - name: Build OS
+      # 👉 сборка версии Lite (если папка есть)
+      - name: Build PlusOS Lite
         run: |
-          # если проект в папке "PlusOS Lite"
           if [ -d "PlusOS Lite" ]; then
             cd "PlusOS Lite"
+            make
+          else
+            echo "❌ Folder PlusOS Lite not found"
+            ls -R
+            exit 1
           fi
 
-          make
+      # 👉 если хочешь, можешь добавить другие версии:
+      # - name: Build PlusOS Pro
+      #   run: |
+      #     if [ -d "PlusOS Pro" ]; then
+      #       cd "PlusOS Pro"
+      #       make
+      #     fi
