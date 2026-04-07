@@ -1,47 +1,34 @@
-# Компиляторы
-AS = nasm
-CC = gcc
+BUILD_DIR = build
+
+ASM = nasm
 LD = ld
 
-# Флаги
-CFLAGS = -m32 -ffreestanding -c
-LDFLAGS = -m elf_i386 -T linker.ld
+ASM_FLAGS = -f elf32
+LD_FLAGS = -m elf_i386 -T linker.ld -o
 
-# Папки
-BOOT = boot
-KERNEL = kernel
-BUILD = build
+BOOT = boot/boot.asm
+KERNEL = kernel/kernel.asm
 
-# Файлы
-BOOT_SRC = $(BOOT)/boot.asm
-KERNEL_SRC = $(KERNEL)/kernel.c
+BOOT_OBJ = $(BUILD_DIR)/boot.o
+KERNEL_OBJ = $(BUILD_DIR)/kernel.o
 
-BOOT_OBJ = $(BUILD)/boot.o
-KERNEL_OBJ = $(BUILD)/kernel.o
-
-OUTPUT = $(BUILD)/kernel.bin
-IMAGE = $(BUILD)/os.img
+IMAGE = $(BUILD_DIR)/os.bin
 
 all: $(IMAGE)
 
-# Ассемблер (bootloader)
-$(BOOT_OBJ): $(BOOT_SRC)
-	mkdir -p $(BUILD)
-	$(AS) -f elf32 $< -o $@
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
-# Компиляция ядра
-$(KERNEL_OBJ): $(KERNEL_SRC)
-	mkdir -p $(BUILD)
-	$(CC) $(CFLAGS) $< -o $@
+$(BOOT_OBJ): $(BOOT) | $(BUILD_DIR)
+	$(ASM) $(ASM_FLAGS) $< -o $@
 
-# Линковка
-$(OUTPUT): $(BOOT_OBJ) $(KERNEL_OBJ)
-	$(LD) $(LDFLAGS) -o $@ $^
+$(KERNEL_OBJ): $(KERNEL) | $(BUILD_DIR)
+	$(ASM) $(ASM_FLAGS) $< -o $@
 
-# Создание образа
-$(IMAGE): $(OUTPUT)
-	cat $< > $@
+$(IMAGE): $(BOOT_OBJ) $(KERNEL_OBJ)
+	$(LD) $(LD_FLAGS) $@ $^
 
-# Очистка
 clean:
-	rm -rf $(BUILD)/*
+	rm -rf $(BUILD_DIR)
+
+.PHONY: all clean
